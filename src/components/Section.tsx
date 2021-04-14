@@ -1,39 +1,23 @@
-import React, { ReactElement, FC, useState, useEffect, useRef } from "react";
-import { useScroll } from "../api/useScroll";
+import React, { FC, useState } from "react";
 import Modal from "react-modal";
 import { addTask } from "../actions/taskAction";
 import { connect } from "react-redux";
-import { DATE, DispatchByProps, TASK, StateByProps } from "../types/type";
+import { DATE, DispatchByProps, TASK, StateByProps, User } from "../types/type";
 import { Dispatch } from "redux";
 import Task from "./Task";
 import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-
-interface Column {
-  id: "time" | "task";
-  label: string;
-  minWidth?: number;
-  align?: "right";
-  format?: (value: number) => string;
-}
-
-const columns: Column[] = [
-  { id: "time", label: "時間", minWidth: 170 },
-  { id: "task", label: "タスク", minWidth: 100 },
-];
-
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
+import Container from "@material-ui/core/Container";
+import CloseIcon from "@material-ui/icons/Close";
+import IconButton from "@material-ui/core/IconButton";
+import TextField from "@material-ui/core/TextField";
+import { onAdd } from "../api/api";
 interface PROPS extends DispatchByProps {
   hour: number;
   date?: DATE;
   currentHour?: number;
-  innerContentRef: any;
+  user?: User;
 }
 const useStyles = makeStyles({
   root: {
@@ -41,79 +25,133 @@ const useStyles = makeStyles({
   },
   container: {
     maxHeight: 440,
+    display: "flex",
+    padding: 0,
+  },
+  isNone: {
+    display: "none",
+  },
+  task: {
+    display: "flex",
+  },
+  modal: {
+    inset: "200px",
+  },
+  textContainer: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+  text: {
+    marginTop: "20px",
+  },
+  closeIcon: {
+    position: "absolute",
+    top: "5px",
+    right: "5px",
   },
 });
 
-const Section: FC<PROPS> = ({
-  addTask,
-  hour,
-  date,
-  currentHour,
-  innerContentRef,
-}) => {
+const Section: FC<PROPS> = ({ addTask, hour, date, user }) => {
   const classes = useStyles();
   const [title, setTitle] = useState("");
   const [memo, setMemo] = useState("");
   const [modalIsOpen, setIsOpen] = useState(false);
-
-  const onAddTask = (e: any) => {
-    e.preventDefault();
+  //const [id, setId] = useState<string | undefined>();
+  const onAddTask = async () => {
     if (!title) {
       alert("タイトルは必須です");
       return;
     }
     if (addTask) {
       if (date) {
-        addTask({ title, memo, date, hour });
+        if (user && user.uid) {
+          const id = await onAdd(user.uid, title, memo, date, hour);
+          id && addTask({ title, memo, date, hour, id });
+        }
+        setIsOpen(false);
       }
     }
   };
 
-  const row = {
-    time: <div onClick={() => setIsOpen(true)}>{hour}時</div>,
-    task: <Task hour={hour} />,
-  };
   return (
     <>
-      <TableRow hover role="checkbox" tabIndex={-1}>
-        {columns.map((column) => {
-          const value = row[column.id];
-          return (
-            <TableCell
-              key={column.id}
-              align={column.align}
-              ref={innerContentRef}
-            >
-              {value}
-            </TableCell>
-          );
-        })}
-      </TableRow>
-      <Modal isOpen={modalIsOpen} onRequestClose={() => setIsOpen(false)}>
-        <form onSubmit={(e) => onAddTask(e)}>
-          作成画面
-          <input
-            type="text"
-            placeholder="タイトル"
+      <Typography variant="h5" component="h2">
+        <Button size="large" onClick={() => setIsOpen(true)}>
+          {hour}時
+        </Button>
+      </Typography>
+      <Container className={classes.container}>
+        <Task hour={hour} />
+      </Container>
+
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setIsOpen(false)}
+        style={customStyles as Modal.Styles}
+        ariaHideApp={false}
+      >
+        <IconButton
+          onClick={() => setIsOpen(false)}
+          className={classes.closeIcon}
+        >
+          <CloseIcon />
+        </IconButton>
+        <div className={classes.textContainer}>
+          <TextField
+            id="standard-basic"
+            label="タイトル"
             onChange={(e) => setTitle(e.target.value)}
+            className={classes.text}
           />
-          <textarea onChange={(e) => setMemo(e.target.value)}></textarea>
-          <input type="submit" />
-        </form>
-        <button onClick={() => setIsOpen(false)}>Close</button>
+          <TextField
+            id="filled-multiline-static"
+            label="メモ"
+            multiline
+            rows={4}
+            variant="filled"
+            className={classes.text}
+            onChange={(e) => setMemo(e.target.value)}
+          />
+        </div>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={onAddTask}
+          className={classes.text}
+        >
+          追加
+        </Button>
       </Modal>
     </>
   );
 };
 
+const customStyles = {
+  content: {
+    padding: "20px",
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    maxHeight: "700px",
+    maxWidth: "700px",
+    height: "50vh",
+    width: "90vw",
+    transform: "translate(-50%, -50%)",
+  },
+};
+
 //空でも良いので、mapStateToPropsを記述
-const mapStateToProps = (state: { date: DATE }): StateByProps => ({
+const mapStateToProps = (state: { date: DATE; user: User }): StateByProps => ({
   date: state.date,
+  user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchByProps => ({
-  addTask: ({ title, memo, date, hour }: TASK) =>
-    dispatch(addTask({ title, memo, date, hour })),
+  addTask: ({ title, memo, date, hour, id }: TASK) =>
+    dispatch(addTask({ title, memo, date, hour, id })),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Section);

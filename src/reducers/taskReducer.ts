@@ -1,8 +1,13 @@
-import { ADD_TASK, DELETE_TASK, UPDATE_TASK } from "../actions/taskAction";
+import {
+  ADD_ALL_TASKS,
+  ADD_TASK,
+  DELETE_TASK,
+  UPDATE_TASK,
+} from "../actions/taskAction";
 import { TASK } from "../types/type";
 const initialState: TASK[] = [];
 
-type PAYLOAD = TASK & number;
+type PAYLOAD = TASK & number & { allTasks: TASK[] };
 
 const task = (
   state = initialState,
@@ -40,7 +45,8 @@ const task = (
       return state.filter((task) => {
         return task.id !== action.payload.id;
       });
-
+    case ADD_ALL_TASKS:
+      return action.payload.allTasks;
     default:
       return state;
   }

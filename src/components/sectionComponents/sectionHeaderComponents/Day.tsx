@@ -1,17 +1,11 @@
 import React, { FC } from "react";
-import { incrementDate } from "../../../actions/dateAction";
 import { connect } from "react-redux";
-import { DATE, DispatchByProps, TASK, StateByProps } from "../../../types/type";
-import { Dispatch } from "redux";
-
+import { DATE, StateByProps } from "../../../types/type";
+import Typography from "@material-ui/core/Typography";
 interface PROPS extends StateByProps {}
 
 const Day: FC<PROPS> = ({ date }) => {
-  return (
-    <div>
-      {date && <h1>{`${date.year}年${date.month}月${date.date}日`}</h1>}
-    </div>
-  );
+  return <Typography>{date && `${date.year}年${date.month}月`}</Typography>;
 };
 
 const mapStateToProps = (state: { date: DATE }): StateByProps => ({

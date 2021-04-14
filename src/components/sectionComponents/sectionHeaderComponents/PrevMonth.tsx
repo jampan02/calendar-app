@@ -1,17 +1,24 @@
 import React, { FC } from "react";
 import { decrementMonth } from "../../../actions/dateAction";
 import { connect } from "react-redux";
-import { DATE, DispatchByProps, TASK, StateByProps } from "../../../types/type";
+import { DispatchByProps } from "../../../types/type";
 import { Dispatch } from "redux";
+import { IconButton } from "@material-ui/core";
 
+import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
 interface PROPS extends DispatchByProps {}
 
 const PrevMonth: FC<PROPS> = ({ decrementMonth }) => {
-  return <div onClick={() => decrementMonth && decrementMonth()}>{`<`}</div>;
+  return (
+    <IconButton size="small" onClick={() => decrementMonth && decrementMonth()}>
+      <ArrowBackIosIcon />
+    </IconButton>
+  );
 };
 
-const mapStateToProps = (state: any) => {};
-
+const mapStateToProps = (state: any) => {
+  return {};
+};
 const mapDispatchToProps = (dispatch: Dispatch): DispatchByProps => ({
   decrementMonth: () => dispatch(decrementMonth()),
 });
