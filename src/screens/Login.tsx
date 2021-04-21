@@ -76,7 +76,7 @@ export default function Login() {
           {isLoginOrNew ? "ログイン" : "サインアップ"}
         </Typography>
         <Typography>テスト用メールアドレス：jampan021@gmail.com</Typography>
-        <Typography>テスト用メールアドレス：taiken</Typography>
+        <Typography>テスト用パスワード：taiken</Typography>
         <form
           className={classes.form}
           noValidate
